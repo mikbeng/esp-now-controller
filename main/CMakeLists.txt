@@ -1,2 +1,2 @@
-idf_component_register(SRCS "esp-now-controller.c"
+idf_component_register(SRCS "main.c" "controller.c"
                     INCLUDE_DIRS ".")

@@ -34,3 +34,6 @@ sdkconfig.old
 *.exe
 *.out
 *.app 
+
+CMakeCache.txt
+CMakeFiles/
