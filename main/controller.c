@@ -20,10 +20,10 @@
 #define TAG "controller"
 
 // Button GPIO pins - adjust these to match your hardware
-#define BTN_UP_PIN     3
-#define BTN_DOWN_PIN   4
-#define BTN_LEFT_PIN   2
-#define BTN_RIGHT_PIN  5
+#define BTN_UP_PIN     17
+#define BTN_DOWN_PIN   19
+#define BTN_LEFT_PIN   23
+#define BTN_RIGHT_PIN  22
 
 // Button bit positions
 #define BTN_UP_BIT     0
@@ -130,7 +130,7 @@ static void init_buttons(void) {
         .pin_bit_mask = (1ULL << BTN_UP_PIN) | (1ULL << BTN_DOWN_PIN) |
                         (1ULL << BTN_LEFT_PIN) | (1ULL << BTN_RIGHT_PIN),
         .mode = GPIO_MODE_INPUT,
-        .pull_up_en = GPIO_PULLUP_ENABLE,
+        .pull_up_en = GPIO_PULLUP_DISABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
         .intr_type = GPIO_INTR_DISABLE
     };
@@ -189,19 +189,26 @@ static void send_button_states(void) {
     if (gpio_get_level(BTN_LEFT_PIN) == 0) current_button_state |= (1 << BTN_LEFT_BIT);
     if (gpio_get_level(BTN_RIGHT_PIN) == 0) current_button_state |= (1 << BTN_RIGHT_BIT);
     
-    // Only send if button state has changed
+    // Only act if button state has changed
     if (current_button_state != last_button_state) {
-        espnow_input_data_t data = {0};
-        data.buttons = current_button_state;
-        
-        // Send data
-        esp_err_t result = esp_now_send(peer_info.peer_addr, (uint8_t *)&data, sizeof(data));
-        if (result != ESP_OK) {
-            ESP_LOGE(TAG, "Error sending data: %d", result);
-            // If send fails, we might need to re-pair
-            is_paired = false;
+        ESP_LOGI(TAG, "Buttons: UP=%d DOWN=%d LEFT=%d RIGHT=%d (0x%02x)",
+                 (current_button_state >> BTN_UP_BIT) & 1,
+                 (current_button_state >> BTN_DOWN_BIT) & 1,
+                 (current_button_state >> BTN_LEFT_BIT) & 1,
+                 (current_button_state >> BTN_RIGHT_BIT) & 1,
+                 current_button_state);
+
+        if (is_paired) {
+            espnow_input_data_t data = {0};
+            data.buttons = current_button_state;
+
+            esp_err_t result = esp_now_send(peer_info.peer_addr, (uint8_t *)&data, sizeof(data));
+            if (result != ESP_OK) {
+                ESP_LOGE(TAG, "Error sending data: %d", result);
+                is_paired = false;
+            }
         }
-        
+
         last_button_state = current_button_state;
     }
 }
@@ -236,10 +243,9 @@ static void controller_task(void *pvParameters) {
                 }
                 last_pair_attempt = current_time;
             }
-        } else {
-            // If paired, check and send button states
-            send_button_states();
         }
+
+        send_button_states();
         
         vTaskDelay(20 / portTICK_PERIOD_MS);  // 50Hz update rate
     }
