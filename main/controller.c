@@ -19,6 +19,9 @@
 
 #define TAG "controller"
 
+// User LED
+#define LED_USER_PIN  0
+
 // Button GPIO pins - adjust these to match your hardware
 #define BTN_UP_PIN     17
 #define BTN_DOWN_PIN   19
@@ -38,13 +41,15 @@ typedef struct {
 } espnow_input_data_t;
 
 // Global variables
-static uint8_t receiver_mac[6] = {0xE8, 0x9F, 0x6D, 0x21, 0x8F, 0xEC};  // Display's MAC address
+//static uint8_t receiver_mac[6] = {0xE8, 0x9F, 0x6D, 0x21, 0x8F, 0xEC};  // Display's MAC address
+static uint8_t receiver_mac[6] = {0x98, 0xA3, 0x16, 0x8E, 0x8B, 0x04};  // Test receiver's MAC address 98:A3:16:8E:8B:04
 static bool is_paired = false;
 static esp_now_peer_info_t peer_info;
 static bool is_running = false;
 
 // Function declarations
 static void init_buttons(void);
+static void init_user_led(void);
 static void init_wifi(void);
 static void init_espnow(void);
 static void send_button_states(void);
@@ -63,8 +68,9 @@ esp_err_t controller_init(void) {
     }
     ESP_ERROR_CHECK(ret);
     
-    // Initialize buttons
+    // Initialize buttons and user LED
     init_buttons();
+    init_user_led();
     
     // Initialize WiFi and ESP-NOW
     init_wifi();
@@ -118,6 +124,9 @@ void controller_stop(void) {
     
     // Cleanup ESP-NOW
     esp_now_deinit();
+
+    // Turn off user LED
+    gpio_set_level(LED_USER_PIN, 0);
     
     // Cleanup WiFi
     esp_wifi_stop();
@@ -137,6 +146,17 @@ static void init_buttons(void) {
     gpio_config(&io_conf);
 }
 
+static void init_user_led(void) {
+    gpio_config_t io_conf = {
+        .pin_bit_mask = (1ULL << LED_USER_PIN),
+        .mode = GPIO_MODE_OUTPUT,
+        .pull_up_en = GPIO_PULLUP_DISABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE
+    };
+    gpio_config(&io_conf);
+    gpio_set_level(LED_USER_PIN, 0);
+}
 static void init_wifi(void) {
     // Initialize WiFi in APSTA mode for better ESP-NOW reliability
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
@@ -206,6 +226,7 @@ static void send_button_states(void) {
             if (result != ESP_OK) {
                 ESP_LOGE(TAG, "Error sending data: %d", result);
                 is_paired = false;
+                gpio_set_level(LED_USER_PIN, 0);
             }
         }
 
@@ -236,8 +257,10 @@ static void controller_task(void *pvParameters) {
                 esp_err_t result = esp_now_add_peer(&peer_info);
                 if (result == ESP_OK) {
                     is_paired = true;
+                    gpio_set_level(LED_USER_PIN, 1);
                     ESP_LOGI(TAG, "Successfully paired with display");
                 } else {
+                    gpio_set_level(LED_USER_PIN, 0);
                     ESP_LOGW(TAG, "Failed to pair (error %d), will retry in %ld seconds", 
                             result, PAIR_RETRY_INTERVAL/1000);
                 }
