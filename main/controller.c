@@ -28,6 +28,8 @@
 #define BTN_LEFT_PIN   23
 #define BTN_RIGHT_PIN  22
 
+#define ESP_ON_HOLD_PIN 21
+
 // Button bit positions
 #define BTN_UP_BIT     0
 #define BTN_DOWN_BIT   1
@@ -71,6 +73,7 @@ esp_err_t controller_init(void) {
     // Initialize buttons and user LED
     init_buttons();
     init_user_led();
+
     
     // Initialize WiFi and ESP-NOW
     init_wifi();
@@ -144,6 +147,18 @@ static void init_buttons(void) {
         .intr_type = GPIO_INTR_DISABLE
     };
     gpio_config(&io_conf);
+}
+
+void init_esp_on_hold_pin(void) {
+    gpio_config_t io_conf = {
+        .pin_bit_mask = (1ULL << ESP_ON_HOLD_PIN),
+        .mode = GPIO_MODE_OUTPUT,
+        .pull_up_en = GPIO_PULLUP_DISABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE
+    };
+    gpio_config(&io_conf);
+    gpio_set_level(ESP_ON_HOLD_PIN, 1);
 }
 
 static void init_user_led(void) {

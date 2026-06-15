@@ -15,6 +15,7 @@
 
 
 // Function declarations
+void init_esp_on_hold_pin(void);
 esp_err_t controller_init(void);
 void controller_start(void);
 void controller_stop(void);

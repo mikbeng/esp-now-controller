@@ -16,6 +16,9 @@ static const char *TAG = "main";
 
 void app_main(void)
 {
+    // Initialize ESP-ON hold pin
+    init_esp_on_hold_pin();
+
     ESP_LOGI(TAG, "Starting controller application");
     
     // Initialize controller
