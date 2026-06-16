@@ -6,7 +6,6 @@
  * @date 2025-06-11
  */
 
-#include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
@@ -16,23 +15,22 @@ static const char *TAG = "main";
 
 void app_main(void)
 {
-    // Initialize ESP-ON hold pin
-    init_esp_on_hold_pin();
+    if (!controller_booted_from_gpio_wake()) {
+        ESP_LOGI(TAG, "Cold boot — entering deep sleep");
+        controller_enter_deep_sleep_until_wake();
+    }
 
-    ESP_LOGI(TAG, "Starting controller application");
-    
-    // Initialize controller
+    ESP_LOGI(TAG, "GPIO wake — starting controller application");
+
     esp_err_t ret = controller_init();
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Failed to initialize controller");
         return;
     }
-    
-    // Start controller
+
     controller_start();
-    
-    // Main loop
+
     while (1) {
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
