@@ -62,8 +62,8 @@ typedef struct {
 } espnow_input_data_t;
 
 // Global variables
-//static uint8_t receiver_mac[6] = {0xE8, 0x9F, 0x6D, 0x21, 0x8F, 0xEC};  // Display's MAC address
-static uint8_t receiver_mac[6] = {0x98, 0xA3, 0x16, 0x8E, 0x8B, 0x04};  // Test receiver's MAC address 98:A3:16:8E:8B:04
+static uint8_t receiver_mac[6] = {0xE8, 0x9F, 0x6D, 0x21, 0x8F, 0xEC};  // Display's MAC address
+//static uint8_t receiver_mac[6] = {0x98, 0xA3, 0x16, 0x8F, 0x0B, 0xF0};  // Test receiver's MAC address 98:A3:16:8F:0B:F0
 static bool is_paired = false;
 static esp_now_peer_info_t peer_info;
 static bool is_running = false;
@@ -291,10 +291,10 @@ static void init_espnow(void) {
 static uint8_t read_button_state(void)
 {
     uint8_t state = 0;
-    if (gpio_get_level(BTN_UP_PIN) == 0) state |= (1 << BTN_UP_BIT);
-    if (gpio_get_level(BTN_DOWN_PIN) == 0) state |= (1 << BTN_DOWN_BIT);
-    if (gpio_get_level(BTN_LEFT_PIN) == 0) state |= (1 << BTN_LEFT_BIT);
-    if (gpio_get_level(BTN_RIGHT_PIN) == 0) state |= (1 << BTN_RIGHT_BIT);
+    if (gpio_get_level(BTN_UP_PIN) == 1) state |= (1 << BTN_UP_BIT);
+    if (gpio_get_level(BTN_DOWN_PIN) == 1) state |= (1 << BTN_DOWN_BIT);
+    if (gpio_get_level(BTN_LEFT_PIN) == 1) state |= (1 << BTN_LEFT_BIT);
+    if (gpio_get_level(BTN_RIGHT_PIN) == 1) state |= (1 << BTN_RIGHT_BIT);
     return state;
 }
 
