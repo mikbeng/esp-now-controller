@@ -28,11 +28,11 @@
 // Button GPIO pins - adjust these to match your hardware
 #define BTN_UP_PIN     17
 #define BTN_DOWN_PIN   19
-#define BTN_LEFT_PIN   23
-#define BTN_RIGHT_PIN  22
+#define BTN_LEFT_PIN   20
+#define BTN_RIGHT_PIN  18
 
-#define BTN_A_PIN      18
-#define BTN_B_PIN      20
+#define BTN_A_PIN      22
+#define BTN_B_PIN      23
 
 #define BTN_START_WAKE_PIN    1
 #define BTN_SEL_PIN           16
